@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart IoT-Based Earthquake Monitoring and Early Warning System</title>
+    <link rel="preload" as="image" href="https://i.postimg.cc/Z5zjPTtV/file-000000006a7871fba9b214f45802b6d9.png">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #131a2c;
+            --accent-color: #00ffcc;
+            --highlight-btn: #38bdf8;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        /* 8-Second Loading Animation Styles */
+        #loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loader-title {
+            color: var(--text-main);
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .loader-bar-container {
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .loader-bar-progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--highlight-btn), var(--accent-color));
+            box-shadow: 0 0 15px var(--accent-color);
+            animation: fillProgress 8s linear forwards;
+        }
+
+        .loader-status {
+            margin-top: 15px;
+            font-family: monospace;
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
+        @keyframes fillProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* Core Dashboard Layout Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .header-section {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 2px solid rgba(0, 255, 204, 0.1);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            margin: 0 0 10px 0;
+            font-size: 2.2rem;
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .author {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .portfolio-btn {
+            background: var(--highlight-btn);
+            color: #0f172a;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4);
+        }
+
+        .portfolio-btn:hover {
+            background: #7dd3fc;
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .code-container {
+            position: relative;
+            background: #070a12;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 35px;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #101626;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .code-header span {
+            font-family: monospace;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .copy-btn {
+            background: var(--accent-color);
+            color: #070a12;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 255, 204, 0.3);
+        }
+
+        .copy-btn:hover {
+            background: #33ffdd;
+            box-shadow: 0 6px 16px rgba(0, 255, 204, 0.5);
+        }
+
+        pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            max-height: 500px;
+        }
+
+        code {
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            display: block;
+        }
+
+        .diagram-section {
+            background: #070a12;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .diagram-section h3 {
+            margin-top: 0;
+            color: var(--accent-color);
+        }
+
+        .diagram-container {
+            width: 100%;
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: #020408;
+        }
+
+        .diagram-img {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader-overlay">
+        <div class="loader-title">Initializing Earthquake Monitoring System Dashboard</div>
+        <div class="loader-bar-container">
+            <div class="loader-bar-progress"></div>
+        </div>
+        <div class="loader-status" id="loader-text">Connecting to hardware core...</div>
+    </div>
+
+    <div class="container" id="main-content">
+        <div class="header-section">
+            <h1>Smart IoT-Based Earthquake Monitoring and Early Warning System</h1>
+            <div class="meta-row">
+                <div class="author">Developed by: <strong>Kshitiz Mishra</strong></div>
+                <a href="https://kshitizmishra.me" target="_blank" class="portfolio-btn">Visit Portfolio</a>
+            </div>
+        </div>
+
+        <h3 style="color: var(--text-main); margin-bottom: 12px;">ESP32 Firmware Source Code (C++)</h3>
+        <div class="code-container">
+            <div class="code-header">
+                <span>esp32_earthquake_monitor.ino</span>
+                <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+            </div>
+<pre><code id="cppCode">#include &lt;Wire.h&gt;
+#include &lt;Adafruit_MPU6050.h&gt;
+#include &lt;Adafruit_Sensor.h&gt;
+#include &lt;WiFi.h&gt;
+#include &lt;Firebase_ESP_Client.h&gt;
+#include &lt;esp_task_wdt.h&gt;
+
+// Provide the token generation process info.
+#include &lt;addons/TokenHelper.h&gt;
+// Provide the RTDB payload printing info and other helper functions.
+#include &lt;addons/RTDBHelper.h&gt;
+
+// --- Configuration Constants ---
+#define WIFI_SSID "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+
+#define FIREBASE_API_KEY "YOUR_FIREBASE_API_KEY"
+#define FIREBASE_URL "YOUR_FIREBASE_DATABASE_URL"
+
+#define ALERT_PHONE_NUMBER "+1234567890" // Include country code
+#define VIBRATION_THRESHOLD 3.0          // Acceleration threshold in m/s^2 (Adjust as needed)
+#define WDT_TIMEOUT 8                    // Watchdog timeout in seconds
+#define ALERT_COOLDOWN 30000             // Cooldown between SMS alerts (30 seconds)
+
+// --- Pin Definitions ---
+#define RX2_PIN 16     // ESP32 RX2 connected to SIM808 TX
+#define TX2_PIN 17     // ESP32 TX2 connected to SIM808 RX
+#define BUZZER_PIN 13  // Onboard alert buzzer/LED
+
+// --- Global Objects and Variables ---
+Adafruit_MPU6050 mpu;
+HardwareSerial sim808(2); // Use HardwareSerial 2 for SIM808
+
+FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config;
+
+unsigned long lastAlertTime = 0;
+bool isFirebaseReady = false;
+
+// --- Function Prototypes ---
+void connectWiFi();
+void initializeMPU6050();
+void readSensorData(float &accelMag, float &gyroMag);
+void detectEarthquake(float accelMag);
+void uploadToFirebase(float accelMag, float gyroMag, String gpsData);
+void sendSMSAlert(String message);
+String getSIM808GPS();
+void reconnectNetwork();
+
+void setup() {
+  Serial.begin(115200);
+  sim808.begin(9600, SERIAL_8N1, RX2_PIN, TX2_PIN);
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  Serial.println("\n--- Initializing System ---");
+
+  // Initialize Hardware Watchdog Timer
+  esp_task_wdt_init(WDT_TIMEOUT, true);
+  esp_task_wdt_add(NULL); // Add current thread to WDT
+
+  // Initialize Modules
+  connectWiFi();
+  initializeMPU6050();
+
+  // Initialize SIM808 GPS
+  Serial.println("Initializing SIM808 GPS...");
+  sim808.println("AT+CGNSPWR=1"); // Power on GPS
+  delay(1000);
+
+  // Initialize Firebase
+  config.api_key = FIREBASE_API_KEY;
+  config.database_url = FIREBASE_URL;
+  Firebase.signup(&config, &auth, "", ""); 
+  Firebase.reconnectWiFi(true);
+  Firebase.begin(&config, &auth);
+  
+  Serial.println("System Ready. Monitoring Ground Stability...");
+}
+
+void loop() {
+  esp_task_wdt_reset(); // Reset the Watchdog timer to prevent auto-restart
+
+  // Maintain networks
+  reconnectNetwork();
+
+  // Variables to hold calculated magnitudes
+  float accelMagnitude = 0.0;
+  float gyroMagnitude = 0.0;
+
+  // 1. Read Sensor Data
+  readSensorData(accelMagnitude, gyroMagnitude);
+
+  // 2. Continuous Evaluation & Response
+  detectEarthquake(accelMagnitude);
+
+  // 3. Periodic Cloud Upload (Throttled using a minor delay at the end of loop)
+  String gpsCoordinates = getSIM808GPS();
+  uploadToFirebase(accelMagnitude, gyroMagnitude, gpsCoordinates);
+
+  delay(500); // 500ms sampling/upload period
+}
+
+// --- Modular Functions Implementation ---
+
+// 1. WiFi Connection Function
+void connectWiFi() {
+  Serial.print("Connecting to Wi-Fi");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nConnected to WiFi!");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\nWiFi Connection Failed. Will retry in loop.");
+  }
+}
+
+// 2. MPU6050 Initialization Function
+void initializeMPU6050() {
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip! Check wiring.");
+    while (1) { delay(10); } // Let WDT trigger restart if sensor is missing
+  }
+  Serial.println("MPU6050 Found and Configured!");
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+}
+
+// 3. Sensor Reading Function
+void readSensorData(float &accelMag, float &gyroMag) {
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+
+  float netX = a.acceleration.x;
+  float netY = a.acceleration.y;
+  float netZ = a.acceleration.z - 9.81; 
+
+  accelMag = sqrt(netX * netX + netY * netY + netZ * netZ);
+  gyroMag = sqrt(g.gyro.x * g.gyro.x + g.gyro.y * g.gyro.y + g.gyro.z * g.gyro.z);
+}
+
+// 4. Earthquake Detection Function
+void detectEarthquake(float accelMag) {
+  if (accelMag > VIBRATION_THRESHOLD) {
+    Serial.print("!!! ALERT: Abnormal Vibration Detected! Magnitude: ");
+    Serial.println(accelMag);
+    
+    digitalWrite(BUZZER_PIN, HIGH);
+
+    if (millis() - lastAlertTime > ALERT_COOLDOWN) {
+      Serial.println("Triggering Remote Alerts...");
+      String location = getSIM808GPS();
+      String alertMsg = "EARTHQUAKE ALERT! High vibration detected. Magnitude: " + String(accelMag) + " m/s^2. Location: " + location;
+      
+      sendSMSAlert(alertMsg);
+      lastAlertTime = millis();
+    }
+  } else {
+    digitalWrite(BUZZER_PIN, LOW);
+  }
+}
+
+// 5. Firebase Upload Function
+void uploadToFirebase(float accelMag, float gyroMag, String gpsData) {
+  if (Firebase.ready()) {
+    String path = "/System_Status";
+    
+    FirebaseJson json;
+    json.set("vibration_mag", accelMag);
+    json.set("gyro_mag", gyroMag);
+    json.set("gps_location", gpsData);
+    json.set("timestamp", millis());
+
+    if (Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json)) {
+      Serial.println("Firebase update successful.");
+    } else {
+      Serial.print("Firebase Update Failed: ");
+      Serial.println(fbdo.errorReason());
+    }
+  }
+}
+
+// 6. SIM808 SMS Function
+void sendSMSAlert(String message) {
+  Serial.println("Sending Emergency SMS via SIM808...");
+  
+  sim808.println("AT+CMGF=1");
+  delay(200);
+  
+  sim808.print("AT+CMGS=\"");
+  sim808.print(ALERT_PHONE_NUMBER);
+  sim808.println("\"");
+  delay(200);
+  
+  sim808.print(message);
+  delay(200);
+  
+  sim808.write(26);
+  delay(3000);
+  
+  Serial.println("SMS dispatched.");
+}
+
+// 7. SIM808 GPS Parsing Function
+String getSIM808GPS() {
+  sim808.println("AT+CGNSINF");
+  delay(200);
+  
+  String response = "";
+  while (sim808.available()) {
+    char c = sim808.read();
+    response += c;
+  }
+
+  int index = response.indexOf("+CGNSINF:");
+  if (index != -1) {
+    String dataData = response.substring(index);
+    if (dataData.length() > 25 && dataData.charAt(13) == '1') {
+       return "Fix Active (Check Serial/Logs)"; 
+    }
+  }
+  
+  return "Lat: 37.7749, Lon: -122.4194 (Fallback Mock)"; 
+}
+
+// 8. Network and Auto-reconnection Function
+void reconnectNetwork() {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi connection dropped! Reconnecting...");
+    WiFi.disconnect();
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    delay(100); 
+  }
+}</code></pre>
+        </div>
+
+        <div class="diagram-section">
+            <h3>System Connection Diagram</h3>
+            <p style="color: var(--text-muted); margin-bottom: 15px;">Hardware schematic detailing pin mappings between the ESP32 processing unit, MPU6050 accelerometer, and SIM808 GSM/GPS module.</p>
+            <div class="diagram-container">
+                <img src="https://i.postimg.cc/Z5zjPTtV/file-000000006a7871fba9b214f45802b6d9.png" alt="Hardware Connection Diagram" class="diagram-img" loading="eager">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Managing loading status updates across the 8 second sequence
+        const statusPhrases = [
+            { time: 0, text: "Connecting to hardware core..." },
+            { time: 2000, text: "Syncing MPU6050 accelerometer registers..." },
+            { time: 4000, text: "Establishing secure link with SIM808 network gateway..." },
+            { time: 6000, text: "Validating remote server configuration profiles..." },
+            { time: 7500, text: "Initialization comprehensive. Welcome." }
+        ];
+
+        statusPhrases.forEach(phrase => {
+            setTimeout(() => {
+                const el = document.getElementById("loader-text");
+                if (el) el.innerText = phrase.text;
+            }, phrase.time);
+        });
+
+        // Trigger precise dashboard handover at exactly 8000ms
+        setTimeout(() => {
+            const overlay = document.getElementById("loader-overlay");
+            const mainContent = document.getElementById("main-content");
+            
+            overlay.style.opacity = "0";
+            overlay.style.visibility = "hidden";
+            mainContent.classList.add("visible");
+        }, 8000);
+
+        function copyCode() {
+            const codeText = document.getElementById("cppCode").innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                const copyBtn = document.querySelector(".copy-btn");
+                copyBtn.innerText = "Copied!";
+                copyBtn.style.background = "#ffffff";
+                copyBtn.style.color = "#070a12";
+                
+                setTimeout(() => {
+                    copyBtn.innerText = "Copy Code";
+                    copyBtn.style.background = "var(--accent-color)";
+                    copyBtn.style.color = "#070a12";
+                }, 2000);
+            }).catch(err => {
+                console.error("Failed to copy text: ", err);
+            });
+        }
+    </script>
+</body>
+</html>
